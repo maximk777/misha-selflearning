@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: misha
+      POSTGRES_USER: misha
+      POSTGRES_PASSWORD: misha
+    ports: ["${POSTGRES_PORT:-5432}:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U misha -d misha"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  redis:
+    image: redis:7.4-alpine
+    ports: ["${REDIS_PORT:-6379}:6379"]
+    volumes: ["redisdata:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  kafka:
+    image: redpandadata/redpanda:v25.1.9
+    command: ["redpanda", "start", "--overprovisioned", "--smp", "1", "--memory", "512M", "--reserve-memory", "0M", "--node-id", "0", "--check=false", "--kafka-addr", "0.0.0.0:9092", "--advertise-kafka-addr", "localhost:9092"]
+    ports: ["${KAFKA_PORT:-9092}:9092"]
+    volumes: ["kafkadata:/var/lib/redpanda/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health --exit-when-healthy"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+volumes:
+  pgdata:
+  redisdata:
+  kafkadata:

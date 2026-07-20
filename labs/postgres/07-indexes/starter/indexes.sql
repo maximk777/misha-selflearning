@@ -1,0 +1,1 @@
+EXPLAIN (ANALYZE,BUFFERS) SELECT * FROM orders WHERE customer_id=4242; CREATE INDEX IF NOT EXISTS orders_customer_idx ON orders(customer_id); EXPLAIN (ANALYZE,BUFFERS) SELECT * FROM orders WHERE customer_id=4242; CREATE INDEX IF NOT EXISTS jobs_new_idx ON jobs(id) WHERE status='new';

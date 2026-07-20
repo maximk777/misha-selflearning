@@ -1,0 +1,3 @@
+-- На publisher: ALTER TABLE orders REPLICA IDENTITY FULL;
+-- CREATE PUBLICATION misha_pub FOR TABLE orders;
+-- На subscriber: CREATE SUBSCRIPTION misha_sub CONNECTION '...' PUBLICATION misha_pub;

@@ -1,0 +1,1 @@
+BEGIN; SELECT * FROM accounts WHERE id=1 FOR UPDATE; SELECT pg_sleep(10); COMMIT;

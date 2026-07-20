@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: task-service-config
+  namespace: misha-course
+data:
+  PORT: "8080"

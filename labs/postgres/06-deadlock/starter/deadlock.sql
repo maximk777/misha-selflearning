@@ -1,0 +1,2 @@
+-- T1: BEGIN; UPDATE accounts SET balance=balance WHERE id=1; затем id=2.
+-- T2: BEGIN; UPDATE accounts SET balance=balance WHERE id=2; затем id=1.

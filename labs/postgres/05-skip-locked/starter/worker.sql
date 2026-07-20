@@ -1,0 +1,1 @@
+BEGIN; WITH picked AS (SELECT id FROM jobs WHERE status='new' ORDER BY id FOR UPDATE SKIP LOCKED LIMIT 1) UPDATE jobs SET status='working',taken_at=now() FROM picked WHERE jobs.id=picked.id RETURNING jobs.*; COMMIT;

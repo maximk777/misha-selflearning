@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS customers_region_idx ON customers(region); EXPLAIN (ANALYZE,BUFFERS) SELECT * FROM customers WHERE region='RU'; EXPLAIN (ANALYZE,BUFFERS) SELECT * FROM customers WHERE email='user42@example.test';

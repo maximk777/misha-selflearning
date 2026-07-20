@@ -33,3 +33,25 @@ bash scripts/test-go-labs.sh
 ```
 
 `check-course.sh` проверяет структуру и Markdown-ссылки. `test-go-labs.sh` запускает `go test ./...` в каждом найденном `go.mod`; это каноническая команда для всех изолированных Go-модулей курса.
+
+Полная локальная проверка:
+
+```bash
+bash scripts/verify-all.sh
+```
+
+Чтобы дополнительно поднять PostgreSQL, Redis и Kafka-compatible broker, добавить seed и проверить healthchecks:
+
+```bash
+RUN_INTEGRATION=1 bash scripts/verify-all.sh
+```
+
+## Где что лежит
+
+- `modules/` — теория от Go до архитектуры и инфраструктуры;
+- `labs/` — короткие воспроизводимые эксперименты;
+- `exams/` — частые зачёты и четыре mock interview;
+- `.agents/skills/` — команды-навыки Codex;
+- `progress/` — доказательный прогресс Миши;
+- `project/backend-lab/` — итоговый tutorial микросервиса с OpenAPI/ogen, PostgreSQL, Redis, Kafka и outbox;
+- `deploy/` — Compose, Nginx и Kubernetes manifests.

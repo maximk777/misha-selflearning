@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS accounts(id int PRIMARY KEY,balance int CHECK(balance>=0)); INSERT INTO accounts VALUES(1,100),(2,0) ON CONFLICT DO NOTHING; BEGIN; UPDATE accounts SET balance=balance-10 WHERE id=1; UPDATE accounts SET balance=balance+10 WHERE id=2; COMMIT; SELECT * FROM accounts ORDER BY id;

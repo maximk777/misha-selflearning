@@ -1,0 +1,31 @@
+openapi: 3.0.3
+info:
+  title: Misha Task API
+  version: 0.1.0
+paths:
+  /healthz:
+    get: {responses: {'200': {description: alive}}}
+  /readyz:
+    get: {responses: {'200': {description: ready}}}
+  /tasks:
+    post:
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/CreateTask'}}}
+      responses: {'201': {description: created}, '200': {description: idempotent replay}, '400': {description: validation}}
+  /tasks/{id}:
+    get:
+      parameters: [{name: id, in: path, required: true, schema: {type: string}}]
+      responses: {'200': {description: task}, '404': {description: missing}}
+  /tasks/{id}/complete:
+    post:
+      parameters: [{name: id, in: path, required: true, schema: {type: string}}]
+      responses: {'200': {description: completed}, '409': {description: already completed}}
+components:
+  schemas:
+    CreateTask:
+      type: object
+      required: [title, idempotency_key]
+      properties:
+        title: {type: string, minLength: 1}
+        idempotency_key: {type: string, minLength: 1}
