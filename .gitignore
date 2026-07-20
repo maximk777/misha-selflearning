@@ -1,0 +1,10 @@
+.DS_Store
+
+# Локальные артефакты Go-лабораторных
+*.test
+*.prof
+coverage.out
+labs/**/starter/[0-9][0-9]-*
+
+# Локальное состояние subagent-driven разработки
+.superpowers/
