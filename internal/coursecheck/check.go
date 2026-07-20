@@ -58,7 +58,7 @@ func Check(root string) []error {
 
 	for _, name := range requiredRootFiles {
 		if !isRegularFile(filepath.Join(root, filepath.FromSlash(name))) {
-			diagnostics = append(diagnostics, fmt.Errorf("missing required root file: %s", name))
+			diagnostics = append(diagnostics, fmt.Errorf("отсутствует обязательный корневой файл: %s", name))
 		}
 	}
 
@@ -69,29 +69,29 @@ func Check(root string) []error {
 		}
 		for _, heading := range headings {
 			if !hasHeading(string(content), heading) {
-				diagnostics = append(diagnostics, fmt.Errorf("%s: missing required heading: %s", name, heading))
+				diagnostics = append(diagnostics, fmt.Errorf("%s: отсутствует обязательный заголовок: %s", name, heading))
 			}
 		}
 	}
 
 	walkErr := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
-			diagnostics = append(diagnostics, fmt.Errorf("%s: cannot inspect: %v", relativePath(root, path), err))
+			diagnostics = append(diagnostics, fmt.Errorf("%s: не удалось прочитать: %v", relativePath(root, path), err))
 			return nil
 		}
 		if entry.IsDir() && entry.Name() == ".git" {
 			return filepath.SkipDir
 		}
 		if entry.IsDir() {
-			if isLabDirectory(root, path) && !isRegularFile(filepath.Join(path, "LAB.md")) {
-				diagnostics = append(diagnostics, fmt.Errorf("%s: missing LAB.md", relativePath(root, path)))
+			if isLabDirectory(root, path) {
+				validateLabDirectory(&diagnostics, root, path)
 			}
 			return nil
 		}
 
 		relative := relativePath(root, path)
 		if containsStarterUnderSolutions(relative) {
-			diagnostics = append(diagnostics, fmt.Errorf("%s: starter code must not be stored under a solutions directory", relative))
+			diagnostics = append(diagnostics, fmt.Errorf("%s: код starter не должен храниться в директории solutions", relative))
 		}
 		if strings.EqualFold(filepath.Ext(path), ".md") {
 			diagnostics = append(diagnostics, checkMarkdownLinks(root, path)...)
@@ -99,7 +99,7 @@ func Check(root string) []error {
 		return nil
 	})
 	if walkErr != nil {
-		diagnostics = append(diagnostics, fmt.Errorf("cannot walk course root: %v", walkErr))
+		diagnostics = append(diagnostics, fmt.Errorf("не удалось обойти корень курса: %v", walkErr))
 	}
 
 	sort.Slice(diagnostics, func(i, j int) bool {
@@ -125,21 +125,35 @@ func hasHeading(content, heading string) bool {
 func isLabDirectory(root, path string) bool {
 	relative := filepath.ToSlash(relativePath(root, path))
 	parts := strings.Split(relative, "/")
-	if len(parts) < 3 || parts[0] != "labs" || containsPart(parts, "solutions") {
-		return false
-	}
+	return len(parts) == 3 && parts[0] == "labs" && !containsPart(parts, "solutions")
+}
 
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return false
+func validateLabDirectory(diagnostics *[]error, root, path string) {
+	relative := relativePath(root, path)
+	if !isRegularFile(filepath.Join(path, "LAB.md")) {
+		*diagnostics = append(*diagnostics, fmt.Errorf("%s: отсутствует LAB.md", relative))
 	}
-	for _, entry := range entries {
-		name := entry.Name()
-		if name == "CHECK.md" || name == "LAB.md" || name == "go.mod" || name == "starter" || strings.HasSuffix(name, ".go") {
-			return true
+	if !isRegularFile(filepath.Join(path, "CHECK.md")) {
+		*diagnostics = append(*diagnostics, fmt.Errorf("%s: отсутствует CHECK.md", relative))
+	}
+	if !hasStarterMaterial(filepath.Join(path, "starter")) {
+		*diagnostics = append(*diagnostics, fmt.Errorf("%s: отсутствует код в starter/", relative))
+	}
+}
+
+func hasStarterMaterial(path string) bool {
+	found := false
+	_ = filepath.WalkDir(path, func(_ string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return nil
 		}
-	}
-	return false
+		if !entry.IsDir() && entry.Type().IsRegular() {
+			found = true
+			return filepath.SkipAll
+		}
+		return nil
+	})
+	return found
 }
 
 func containsStarterUnderSolutions(relative string) bool {
@@ -165,7 +179,7 @@ func containsPart(parts []string, want string) bool {
 func checkMarkdownLinks(root, path string) []error {
 	content, err := os.ReadFile(path)
 	if err != nil {
-		return []error{fmt.Errorf("%s: cannot read Markdown: %v", relativePath(root, path), err)}
+		return []error{fmt.Errorf("%s: не удалось прочитать Markdown: %v", relativePath(root, path), err)}
 	}
 
 	var diagnostics []error
@@ -180,11 +194,11 @@ func checkMarkdownLinks(root, path string) []error {
 		resolved := filepath.Clean(filepath.Join(filepath.Dir(path), filepath.FromSlash(linkPath)))
 		relative, err := filepath.Rel(root, resolved)
 		if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
-			diagnostics = append(diagnostics, fmt.Errorf("%s: relative link escapes repository: %s", relativePath(root, path), target))
+			diagnostics = append(diagnostics, fmt.Errorf("%s: относительная ссылка выходит за пределы репозитория: %s", relativePath(root, path), target))
 			continue
 		}
 		if _, err := os.Stat(resolved); err != nil {
-			diagnostics = append(diagnostics, fmt.Errorf("%s: broken relative link: %s", relativePath(root, path), target))
+			diagnostics = append(diagnostics, fmt.Errorf("%s: неработающая относительная ссылка: %s", relativePath(root, path), target))
 		}
 	}
 	return diagnostics

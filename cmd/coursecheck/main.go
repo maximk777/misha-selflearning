@@ -9,7 +9,7 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: coursecheck <course-root>")
+		fmt.Fprintln(os.Stderr, "Использование: coursecheck <корень-курса>")
 		os.Exit(2)
 	}
 
@@ -20,4 +20,5 @@ func main() {
 	if len(errs) != 0 {
 		os.Exit(1)
 	}
+	fmt.Println("Проверка структуры курса пройдена.")
 }

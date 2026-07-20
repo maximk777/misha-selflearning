@@ -10,7 +10,7 @@ while IFS= read -r module; do
 		relative_dir="."
 	fi
 
-	echo "Testing Go module: $relative_dir"
+	echo "Проверяем Go-модуль: $relative_dir"
 	(
 		cd "$module_dir"
 		go test ./...

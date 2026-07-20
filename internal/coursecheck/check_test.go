@@ -22,7 +22,7 @@ func TestCheck(t *testing.T) {
 				t.Helper()
 				mustRemove(t, root, "README.md")
 			},
-			wantErr: "missing required root file: README.md",
+			wantErr: "отсутствует обязательный корневой файл: README.md",
 		},
 		{
 			name: "reports missing required progress heading",
@@ -30,7 +30,7 @@ func TestCheck(t *testing.T) {
 				t.Helper()
 				mustWrite(t, root, "progress/STATUS.md", "# Статус\n")
 			},
-			wantErr: "progress/STATUS.md: missing required heading: ## Текущий этап",
+			wantErr: "progress/STATUS.md: отсутствует обязательный заголовок: ## Текущий этап",
 		},
 		{
 			name: "reports broken relative markdown link",
@@ -38,7 +38,7 @@ func TestCheck(t *testing.T) {
 				t.Helper()
 				mustWrite(t, root, "README.md", "[Нерабочая ссылка](missing.md)\n")
 			},
-			wantErr: "README.md: broken relative link: missing.md",
+			wantErr: "README.md: неработающая относительная ссылка: missing.md",
 		},
 		{
 			name: "reports lab without LAB.md",
@@ -46,7 +46,35 @@ func TestCheck(t *testing.T) {
 				t.Helper()
 				mustWrite(t, root, "labs/go/01-syntax/CHECK.md", "# Проверка\n")
 			},
-			wantErr: "labs/go/01-syntax: missing LAB.md",
+			wantErr: "labs/go/01-syntax: отсутствует LAB.md",
+		},
+		{
+			name: "reports lab without CHECK.md",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "labs/go/01-syntax/LAB.md", "# Лабораторная\n")
+				mustWrite(t, root, "labs/go/01-syntax/starter/main.go", "package main\n")
+			},
+			wantErr: "labs/go/01-syntax: отсутствует CHECK.md",
+		},
+		{
+			name: "reports lab without starter code",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "labs/go/01-syntax/LAB.md", "# Лабораторная\n")
+				mustWrite(t, root, "labs/go/01-syntax/CHECK.md", "# Проверка\n")
+			},
+			wantErr: "labs/go/01-syntax: отсутствует код в starter/",
+		},
+		{
+			name: "accepts normative labs go 01-syntax without treating starter as a lab",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "labs/go/01-syntax/LAB.md", "# Лабораторная\n")
+				mustWrite(t, root, "labs/go/01-syntax/CHECK.md", "# Проверка\n")
+				mustWrite(t, root, "labs/go/01-syntax/starter/main.go", "package main\n")
+			},
+			wantErr: "",
 		},
 		{
 			name: "reports starter code under solutions",
@@ -54,7 +82,7 @@ func TestCheck(t *testing.T) {
 				t.Helper()
 				mustWrite(t, root, "labs/go/solutions/01-syntax/starter/main.go", "package main\n")
 			},
-			wantErr: "labs/go/solutions/01-syntax/starter/main.go: starter code must not be stored under a solutions directory",
+			wantErr: "labs/go/solutions/01-syntax/starter/main.go: код starter не должен храниться в директории solutions",
 		},
 	}
 
