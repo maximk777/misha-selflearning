@@ -46,6 +46,12 @@ bash scripts/verify-all.sh
 RUN_INTEGRATION=1 bash scripts/verify-all.sh
 ```
 
+Если стандартный PostgreSQL-порт занят:
+
+```bash
+POSTGRES_PORT=15432 RUN_INTEGRATION=1 bash scripts/verify-all.sh
+```
+
 ## Где что лежит
 
 - `modules/` — теория от Go до архитектуры и инфраструктуры;
