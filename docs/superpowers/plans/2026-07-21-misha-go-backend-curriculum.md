@@ -14,6 +14,7 @@
 - Start date is `2026-07-21`; target date is `2026-10-21`; baseline pace is 10–12 hours per week.
 - Go runs on the host; PostgreSQL, Redis, and Kafka run through Docker Compose.
 - Every required lab provides an exact run command, expected observation, deliberate breakage, repair task, retelling prompt, and acceptance check.
+- A topic is a logical bundle: focused theory lives in `modules/`, runnable practice lives in `labs/` with `LAB.md`, `CHECK.md`, and starter code; `DEEP_DIVE.md` exists only for topics that genuinely need an advanced layer.
 - Solutions are physically separated from starter tasks and Codex must not reveal them before a real attempt.
 - Progress is updated only from evidence: command output, passing tests, working code, or an oral explanation accepted by the examiner.
 - Kubernetes stays at interview-ready middle overview level; no local cluster is required.
@@ -57,6 +58,7 @@
 - Create: `progress/REVIEW_QUEUE.md`
 - Create: `progress/README.md`
 - Create: `scripts/check-course.sh`
+- Create: `scripts/test-go-labs.sh`
 
 **Interfaces:**
 - Consumes: the directory contract in the design specification.
@@ -80,13 +82,15 @@ Implement `Check(root string) []error` with deterministic, sorted diagnostics. I
 
 `cmd/coursecheck` prints every diagnostic and exits 1 when any error exists. `scripts/check-course.sh` uses `set -euo pipefail`, resolves the repository root, and runs `go run ./cmd/coursecheck "$root"`.
 
+`scripts/test-go-labs.sh` finds repository-owned `go.mod` files in deterministic order, runs `go test ./...` from each module directory, reports the module being tested, and exits on the first failure. This is the canonical repository-wide Go test command because labs and the cumulative project intentionally use isolated modules.
+
 - [ ] **Step 5: Create the initial learner state and root documentation**
 
 Populate the profile with React experience, backend starting point, dates, pace, preferred energetic tone, and evidence-only grading. `STATUS.md` starts at onboarding with zero fabricated completions. `README.md` lists natural-language Codex commands and the dependency model.
 
 - [ ] **Step 6: Verify**
 
-Run: `go test ./internal/coursecheck -v && bash scripts/check-course.sh`
+Run: `go test ./internal/coursecheck -v && bash scripts/check-course.sh && bash scripts/test-go-labs.sh`
 
 Expected: all tests pass and the course checker exits 0.
 
@@ -274,7 +278,7 @@ Provide corrected code and explanation under `labs/go/solutions/`, mirroring lab
 
 - [ ] **Step 4: Verify all Go labs**
 
-Run: `go test ./...`
+Run: `bash scripts/test-go-labs.sh`
 
 Expected: all normal starter packages and validator tests pass; intentionally broken snippets are stored as `.txt` or build-tagged examples and do not break the repository build.
 
@@ -327,7 +331,7 @@ Create a dependency-free `net/http` JSON task service. Include server/client tim
 
 - [ ] **Step 4: Verify normal behavior**
 
-Run: `go test ./... && go test -race ./labs/concurrency/... ./labs/http/...`
+Run: `bash scripts/test-go-labs.sh` and then run `go test -race ./...` from `labs/concurrency` and `labs/http`.
 
 Expected: all corrected/default paths pass with no races.
 
@@ -449,7 +453,7 @@ Run multiple labeled HTTP replicas behind Nginx and observe balancing. Provide a
 
 Run: `docker compose -f deploy/compose.yaml config`
 
-Run: `bash scripts/deps-up.sh && bash scripts/wait-deps.sh && go test ./... && bash scripts/check-course.sh`
+Run: `bash scripts/deps-up.sh && bash scripts/wait-deps.sh && bash scripts/test-go-labs.sh && bash scripts/check-course.sh`
 
 Expected: Compose config is valid, dependencies become healthy, Go clients pass their integration checks when enabled, and every curriculum link validates.
 
@@ -516,7 +520,7 @@ Create a non-root multi-stage image and step-by-step tutorial checkpoints. Each 
 
 - [ ] **Step 7: Verify**
 
-Run: `go test ./...`
+Run: `bash scripts/test-go-labs.sh`
 
 Run inside project: `go generate ./... && go test ./...`
 
