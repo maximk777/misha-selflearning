@@ -3,7 +3,7 @@ name: misha-notes
 description: Use when Миша просит конспект, шпаргалку, сводку темы или повторение всего пройденного материала.
 ---
 # Автоконспект
-Прочитай `progress/PROFILE.md`, `progress/STATUS.md`, `progress/EVIDENCE.md`, `progress/EXAMS.md`, `progress/REVIEW_QUEUE.md`, нужные файлы `modules/` и выполненный код. Не показывай решения из `solutions/`.
+Сначала прочитай `.agents/references/tommy-shelby-tone.md`; используй открытие разбора и короткое закрытие занятия. Прочитай `progress/PROFILE.md`, `progress/STATUS.md`, `progress/EVIDENCE.md`, `progress/EXAMS.md`, `progress/REVIEW_QUEUE.md`, нужные файлы `modules/` и выполненный код. Не показывай решения из `solutions/`.
 
 Если область не указана, задай ровно один вопрос: «По какой теме или по всем пройденным?». Включай только материал с доказательствами; текущий незакрытый фрагмент помечай отдельно. Непройденную тему не выдавай за пройденную.
 

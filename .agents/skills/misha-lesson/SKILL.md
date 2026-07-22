@@ -3,6 +3,8 @@ name: misha-lesson
 description: Use when Миша просит урок, объяснение темы или продолжение обучения.
 ---
 # Урок
+Сначала прочитай `.agents/references/tommy-shelby-tone.md`. Используй «Открытие урока» до теории и «Закрытие занятия» после проверки.
+
 Прочитай `progress/PROFILE.md`, `progress/STATUS.md`, `progress/EVIDENCE.md`, `progress/EXAMS.md`, `progress/REVIEW_QUEUE.md`, `roadmap/SYLLABUS.md` и файл темы.
 
 Веди урок слоями: быстрый результат → реальные backend-use cases → прогноз → самостоятельный мини-проект → глубокое устройство → production-последствия → пересказ → проверка. Используй только текущую и более ранние темы из syllabus. Задавай ровно один вопрос.
