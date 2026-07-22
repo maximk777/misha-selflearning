@@ -3,7 +3,9 @@ set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 skills_dir="$root/.agents/skills"
-names='misha-onboarding misha-lesson misha-exam misha-review misha-progress misha-mock-interview misha-next'
+learner_names='misha-onboarding misha-lesson misha-exam misha-review misha-progress misha-mock-interview misha-next misha-notes'
+maintainer_names='misha-course-audit'
+names="$learner_names $maintainer_names"
 failed=0
 
 require_phrase() {
@@ -34,17 +36,25 @@ for name in $names; do
 		printf '%s: description должен начинаться с Use when\n' "$file" >&2
 		failed=1
 	fi
-	require_phrase "$file" 'ровно один вопрос'
-	require_phrase "$file" 'progress/PROFILE.md'
-	require_phrase "$file" 'progress/STATUS.md'
-	require_phrase "$file" 'progress/EVIDENCE.md'
-	require_phrase "$file" 'progress/EXAMS.md'
-	require_phrase "$file" 'progress/REVIEW_QUEUE.md'
-	require_phrase "$file" 'Не показывай решения'
+	case " $learner_names " in
+		*" $name "*)
+			require_phrase "$file" 'ровно один вопрос'
+			require_phrase "$file" 'progress/PROFILE.md'
+			require_phrase "$file" 'progress/STATUS.md'
+			require_phrase "$file" 'progress/EVIDENCE.md'
+			require_phrase "$file" 'progress/EXAMS.md'
+			require_phrase "$file" 'progress/REVIEW_QUEUE.md'
+			require_phrase "$file" 'Не показывай решения'
+			;;
+		*)
+			require_phrase "$file" 'progress/'
+			require_phrase "$file" 'solutions/'
+			;;
+	esac
 done
 
 if [ "$failed" -ne 0 ]; then
 	exit 1
 fi
 
-printf 'Проверка семи навыков пройдена.\n'
+printf 'Проверка навыков наставника пройдена.\n'

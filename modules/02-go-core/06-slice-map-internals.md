@@ -21,3 +21,37 @@
 ## Пересказ и сдача
 
 **Один вопрос:** какую часть модели slice можно использовать в production, а какую нельзя привязывать к версии runtime? Это advanced-знание не блокирует минимум.
+
+## Где это применяется в реальном backend
+
+1. **Большой batch** — preallocation снижает reallocations; точный рост cap нельзя считать контрактом версии Go.
+2. **Кэш-индекс** — map даёт lookup, но iteration order не годится для стабильного отчёта.
+3. **Маленький результат из большого buffer** — subslice удерживает backing array; bounded copy освобождает лишнюю память.
+
+## Глубокое погружение
+
+Slice descriptor/aliasing/reallocation следуют публичной модели, алгоритм роста — runtime detail. Map runtime меняется между версиями; стабильны лишь contract операций, comparable keys и отсутствие порядка. Mutation map во время iteration имеет ограниченный контракт, concurrent access требует будущей синхронизации. Costs измеряются allocs, benchmark и heap profile. Докажи aliasing адресами/тестом, retention профилем, map-order независимость сравнением результатов после явного упорядочивания на уровне контракта.
+
+## Мини-проект
+
+### Результат
+
+Продолжи `project/order-report/domain`: оптимизируй обработку batch, сократи allocations и исключи удержание большого входа, сохранив результат.
+
+### Разрешённые знания
+
+Все предыдущие темы Go, slice/map internals, benchmark и tests.
+
+### Проверка
+
+Из корня репозитория: `go -C project/order-report test ./...` и `go -C project/order-report test -bench=. -benchmem ./domain`; зафиксируй before/after.
+
+### Критерии приёмки
+
+- [ ] корректность не зависит от cap growth/map order;
+- [ ] ownership копий объяснён;
+- [ ] улучшение подтверждено измерением либо гипотеза отвергнута.
+
+### Усложнение после первой версии
+
+Добавить benchmark для маленького и большого batch и объяснить различие.

@@ -3,6 +3,7 @@ package coursecheck
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -84,6 +85,70 @@ func TestCheck(t *testing.T) {
 			},
 			wantErr: "labs/go/solutions/01-syntax/starter/main.go: код starter не должен храниться в директории solutions",
 		},
+		{
+			name: "accepts a complete topic contract",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "modules/01-go-start/01-syntax.md", validTopicContent)
+			},
+			wantErr: "",
+		},
+		{
+			name: "reports topic without real backend uses",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "modules/01-go-start/01-syntax.md", removeLine(validTopicContent, "## Где это применяется в реальном backend"))
+			},
+			wantErr: "modules/01-go-start/01-syntax.md: отсутствует обязательный заголовок темы: ## Где это применяется в реальном backend",
+		},
+		{
+			name: "reports topic without deep dive",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "modules/01-go-start/01-syntax.md", removeLine(validTopicContent, "## Глубокое погружение"))
+			},
+			wantErr: "modules/01-go-start/01-syntax.md: отсутствует обязательный заголовок темы: ## Глубокое погружение",
+		},
+		{
+			name: "reports topic with fewer than three backend uses",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "modules/01-go-start/01-syntax.md", removeLine(validTopicContent, "3. Третий сценарий."))
+			},
+			wantErr: "modules/01-go-start/01-syntax.md: блок реальных применений должен содержать минимум три нумерованных сценария",
+		},
+		{
+			name: "reports topic without mini project",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "modules/01-go-start/01-syntax.md", removeLine(validTopicContent, "## Мини-проект"))
+			},
+			wantErr: "modules/01-go-start/01-syntax.md: отсутствует обязательный заголовок темы: ## Мини-проект",
+		},
+		{
+			name: "reports mini project without result",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "modules/01-go-start/01-syntax.md", removeLine(validTopicContent, "### Результат"))
+			},
+			wantErr: "modules/01-go-start/01-syntax.md: отсутствует обязательный заголовок темы: ### Результат",
+		},
+		{
+			name: "reports mini project without permitted knowledge",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "modules/01-go-start/01-syntax.md", removeLine(validTopicContent, "### Разрешённые знания"))
+			},
+			wantErr: "modules/01-go-start/01-syntax.md: отсутствует обязательный заголовок темы: ### Разрешённые знания",
+		},
+		{
+			name: "reports mini project without acceptance criteria",
+			mutate: func(t *testing.T, root string) {
+				t.Helper()
+				mustWrite(t, root, "modules/01-go-start/01-syntax.md", removeLine(validTopicContent, "### Критерии приёмки"))
+			},
+			wantErr: "modules/01-go-start/01-syntax.md: отсутствует обязательный заголовок темы: ### Критерии приёмки",
+		},
 	}
 
 	for _, tt := range tests {
@@ -107,6 +172,37 @@ func TestCheck(t *testing.T) {
 			}
 		})
 	}
+}
+
+const validTopicContent = `# Синтаксис
+
+## Где это применяется в реальном backend
+
+1. Первый сценарий.
+2. Второй сценарий.
+3. Третий сценарий.
+
+## Глубокое погружение
+
+Механизм.
+
+## Мини-проект
+
+### Результат
+
+Команда работает.
+
+### Разрешённые знания
+
+Текущая тема.
+
+### Критерии приёмки
+
+Проверяемый результат.
+`
+
+func removeLine(content, line string) string {
+	return strings.Replace(content, line+"\n", "", 1)
 }
 
 func TestCheckSortsDiagnostics(t *testing.T) {

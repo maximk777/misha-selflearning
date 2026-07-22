@@ -21,3 +21,37 @@
 ## Пересказ и сдача
 
 **Один вопрос:** почему маленький interface проще заменить в test? Покажи зелёный test и ответь на GC-1.
+
+## Где это применяется в реальном backend
+
+1. **Правило скидки** — consumer принимает поведение расчёта, не конкретный тип; широкий interface связывает несвязанные операции.
+2. **Вывод отчёта** — интерфейс writer позволяет заменить файл памятью в test; interface должен принадлежать вызывающей стороне.
+3. **Подмена часов/ID** — маленькая зависимость делает доменное правило детерминированным; interface для каждого struct без второй реализации лишь добавляет шум.
+
+## Глубокое погружение
+
+Interface value концептуально хранит dynamic type и dynamic value. Method set `T` включает value-receiver методы, method set `*T` — value и pointer-receiver методы. Поэтому `T` может не удовлетворять interface, которому нужен pointer receiver. Interface равен `nil`, только когда обе части nil; `var p *Rule=nil; var x Rule=p` — non-nil interface и вызов может panic. Сравнение interface с `nil` безопасно. При сравнении двух interface values разные dynamic types дают `false`; если dynamic types одинаковы, но этот тип несравним (например, slice), сравнение panic. Возможную runtime-стоимость здесь не угадываем: корректность доказываем compile-time assertions, обычными тестами и typed-nil cases, а измерения появятся позже.
+
+## Мини-проект
+
+### Результат
+
+Продолжи существующий `project/order-report`: начни domain library в согласованном subpackage `domain`, где функция расчёта итога принимает маленькое правило скидки и выдаёт проверяемый результат.
+
+### Разрешённые знания
+
+Весь Go Start, interfaces, composition и method sets.
+
+### Проверка
+
+Из корня репозитория: `go -C project/order-report test ./...` с двумя реализациями, typed nil и compile-time assertion удовлетворения interface.
+
+### Критерии приёмки
+
+- [ ] interface описывает потребность consumer;
+- [ ] pointer/value method sets и typed nil проверены;
+- [ ] ученик объясняет dynamic type/value и trade-off abstraction.
+
+### Усложнение после первой версии
+
+Добавить второе независимое правило без расширения исходного interface.

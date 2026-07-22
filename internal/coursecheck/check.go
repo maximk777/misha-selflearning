@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -51,6 +52,15 @@ var requiredProgressHeadings = map[string][]string{
 	},
 }
 
+var requiredTopicHeadings = []string{
+	"## Где это применяется в реальном backend",
+	"## Глубокое погружение",
+	"## Мини-проект",
+	"### Результат",
+	"### Разрешённые знания",
+	"### Критерии приёмки",
+}
+
 // Check returns all contract violations in stable lexicographic order.
 // It only reads files and never changes the course directory.
 func Check(root string) []error {
@@ -93,6 +103,9 @@ func Check(root string) []error {
 		if containsStarterUnderSolutions(relative) {
 			diagnostics = append(diagnostics, fmt.Errorf("%s: код starter не должен храниться в директории solutions", relative))
 		}
+		if isTopicFile(relative) {
+			diagnostics = append(diagnostics, validateTopicFile(root, relative)...)
+		}
 		if strings.EqualFold(filepath.Ext(path), ".md") {
 			diagnostics = append(diagnostics, checkMarkdownLinks(root, path)...)
 		}
@@ -106,6 +119,56 @@ func Check(root string) []error {
 		return diagnostics[i].Error() < diagnostics[j].Error()
 	})
 	return diagnostics
+}
+
+func isTopicFile(relative string) bool {
+	parts := strings.Split(filepath.ToSlash(relative), "/")
+	return len(parts) == 3 && parts[0] == "modules" &&
+		strings.EqualFold(filepath.Ext(parts[2]), ".md") && !strings.EqualFold(parts[2], "README.md")
+}
+
+func validateTopicFile(root, relative string) []error {
+	content, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(relative)))
+	if err != nil {
+		return []error{fmt.Errorf("%s: не удалось прочитать тему: %v", relative, err)}
+	}
+
+	var diagnostics []error
+	for _, heading := range requiredTopicHeadings {
+		if !hasHeading(string(content), heading) {
+			diagnostics = append(diagnostics, fmt.Errorf("%s: отсутствует обязательный заголовок темы: %s", relative, heading))
+		}
+	}
+	if hasHeading(string(content), "## Где это применяется в реальном backend") && countNumberedBackendUses(string(content)) < 3 {
+		diagnostics = append(diagnostics, fmt.Errorf("%s: блок реальных применений должен содержать минимум три нумерованных сценария", relative))
+	}
+	return diagnostics
+}
+
+func countNumberedBackendUses(content string) int {
+	inside := false
+	count := 0
+	for _, rawLine := range strings.Split(content, "\n") {
+		line := strings.TrimSpace(rawLine)
+		if line == "## Где это применяется в реальном backend" {
+			inside = true
+			continue
+		}
+		if inside && strings.HasPrefix(line, "## ") {
+			break
+		}
+		if !inside {
+			continue
+		}
+		parts := strings.SplitN(line, ". ", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		if number, err := strconv.Atoi(parts[0]); err == nil && number > 0 {
+			count++
+		}
+	}
+	return count
 }
 
 func isRegularFile(path string) bool {
